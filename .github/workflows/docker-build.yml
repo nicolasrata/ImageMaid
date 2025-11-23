@@ -68,4 +68,4 @@ jobs:
             BRANCH_NAME=${{ github.ref_name }}
 
       - name: Image digest
-        run: echo ${{ steps.meta.outputs.tags }}
+        run: echo "${{ steps.meta.outputs.tags }}"
