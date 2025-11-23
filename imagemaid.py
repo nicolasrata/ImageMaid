@@ -66,6 +66,7 @@ options = [
     {"arg": "l",  "key": "local",            "env": "LOCAL_DB",         "type": "bool", "default": False,    "help": "The script will copy the database file rather than downloading it through the Plex API (Helps with Large DBs)."},
     {"arg": "e",  "key": "existing",         "env": "USE_EXISTING",     "type": "bool", "default": False,    "help": "Use the existing database if less then 2 hours old."},
     {"arg": "pt", "key": "photo-transcoder", "env": "PHOTO_TRANSCODER", "type": "bool", "default": False,    "help": "Global Toggle to Clean Plex's PhotoTranscoder Directory."},
+    {"arg": "ptp", "key": "photo-transcoder-path", "env": "PHOTO_TRANSCODER_PATH", "type": "str", "default": None, "help": "Custom Path to the PhotoTranscoder Directory (Default: {PLEX_PATH}/Cache/PhotoTranscoder)."},
     {"arg": "et", "key": "empty-trash",      "env": "EMPTY_TRASH",      "type": "bool", "default": False,    "help": "Global Toggle to Run Plex's Empty Trash Operation."},
     {"arg": "cb", "key": "clean-bundles",    "env": "CLEAN_BUNDLES",    "type": "bool", "default": False,    "help": "Global Toggle to Run Plex's Clean Bundles Operation."},
     {"arg": "od", "key": "optimize-db",      "env": "OPTIMIZE_DB",      "type": "bool", "default": False,    "help": "Global Toggle to Run Plex's Optimize DB Operation."},
@@ -137,7 +138,7 @@ def run_imagemaid(attrs):
             logger.warning(f"No Plex Path Provided. Using default: {os.path.join(base_dir, 'plex')}")
             args["plex"] = os.path.join(base_dir, "plex")
         args["plex"] = os.path.abspath(args["plex"])
-        transcoder_dir = os.path.join(args["plex"], "Cache", "PhotoTranscoder")
+        transcoder_dir = os.path.abspath(args["photo-transcoder-path"]) if args["photo-transcoder-path"] else os.path.join(args["plex"], "Cache", "PhotoTranscoder")
         databases_dir = os.path.join(args["plex"], "Plug-in Support", "Databases")
         meta_dir = os.path.join(args["plex"], "Metadata")
         restore_dir = os.path.join(args["plex"], "ImageMaid Restore")
