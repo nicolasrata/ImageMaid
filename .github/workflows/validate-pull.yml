@@ -3,6 +3,8 @@ name: Validate Pull Request
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, labeled]
+    branches:
+      - develop
 
 jobs:
 
@@ -19,11 +21,12 @@ jobs:
           echo "Head Repo: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "Head Ref: ${{ github.event.pull_request.head.ref }}"
 
-      - name: Check Base Branch
-        if: github.base_ref == 'master'
-        run: |
-          echo "ERROR: Pull Requests cannot be submitted to master. Please submit the Pull Request to the develop branch"
-          exit 1
+      # Note: Base branch check disabled for fork - PRs to master are allowed
+      # - name: Check Base Branch
+      #   if: github.base_ref == 'master' && github.repository == 'Kometa-Team/ImageMaid'
+      #   run: |
+      #     echo "ERROR: Pull Requests cannot be submitted to master. Please submit the Pull Request to the develop branch"
+      #     exit 1
 
       - name: Checkout Repo
         uses: actions/checkout@v4
