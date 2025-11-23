@@ -161,6 +161,30 @@ def run_imagemaid(attrs):
                 raise Failed("Args Error: No Plex URL Provided")
             if not args["token"]:
                 raise Failed("Args Error: No Plex Token Provided")
+
+            # Clean whitespace from URL and token
+            args["url"] = args["url"].strip()
+            args["token"] = args["token"].strip()
+
+            # Validate and normalize URL
+            if not args["url"].startswith(("http://", "https://")):
+                args["url"] = f"http://{args['url']}"
+                logger.warning(f"URL modified to include http:// scheme: {args['url']}")
+
+            # Debug logging for troubleshooting
+            if args["trace"]:
+                logger.debug(f"Plex URL: {args['url']}")
+                logger.debug(f"Token length: {len(args['token'])} characters")
+                logger.debug(f"Token starts with: {args['token'][:5]}..." if len(args['token']) > 5 else "Token too short")
+
+            # Test basic connectivity before attempting PlexServer connection
+            try:
+                logger.info(f"Testing connectivity to {args['url']}...")
+                test_response = requests.get(f"{args['url']}/identity", timeout=10)
+                logger.info("Server is reachable")
+            except requests.exceptions.RequestException as e:
+                raise Failed(f"Network Error: Cannot reach Plex server at {args['url']}\nError: {e}\nPlease verify:\n  - The URL is correct\n  - The server is running\n  - No firewall is blocking the connection")
+
             plexapi.server.TIMEOUT = args["timeout"]
             os.environ["PLEXAPI_PLEXAPI_TIMEOUT"] = str(args["timeout"])
 
@@ -168,8 +192,15 @@ def run_imagemaid(attrs):
             def plex_connect():
                 try:
                     return PlexServer(args["url"], args["token"], timeout=args["timeout"])
-                except Unauthorized:
-                    raise Failed("Plex Error: Plex token is invalid")
+                except Unauthorized as e:
+                    error_msg = f"Plex Error: Authentication failed\n"
+                    error_msg += f"  - URL used: {args['url']}\n"
+                    error_msg += f"  - Token length: {len(args['token'])} characters\n"
+                    error_msg += f"  - Verify your PLEX_URL and PLEX_TOKEN in .env file\n"
+                    error_msg += f"  - Check for extra spaces in your configuration\n"
+                    error_msg += f"  - Ensure your token is valid (get it from: Settings > Account > Security)\n"
+                    error_msg += f"Original error: {e}"
+                    raise Failed(error_msg)
                 except Exception as e1:
                     logger.error(e1)
                     raise
